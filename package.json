@@ -3,9 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "pixi.js": "^4.8.7",
     "react": "^16.8.5",
     "react-dom": "^16.8.5",
-    "react-scripts": "2.1.8"
+    "react-pixi": "^0.9.19",
+    "react-pixi-fiber": "^0.8.0",
+    "react-scripts": "2.1.8",
+    "react-simple-file-input": "^2.1.0"
   },
   "scripts": {
     "start": "react-scripts start",
