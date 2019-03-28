@@ -5,7 +5,6 @@ import * as PIXI from 'pixi.js';
 import './App.css';
 import ReactPIXI from "react-pixi-fiber/react-pixi-alias";
 import { Sprite, Stage } from "react-pixi-fiber";
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -102,52 +101,120 @@ void main() {											\
 //  };
   render() {
     return (
-      <div className="App" style={{display: "flex", flexDirection: "column", align: "center"}}>
-        <label>
+      <div className="App">
+        <div className = "toolbar">
           <FileInput
+            id="fileInput"
             readAs='dataUrl'
             style={{display:'none'}}
             onLoad={this.updateImage}
           />
-          <span>
-            CLICK HERE TO LOAD IMAGE
-          </span>
-        </label>
-        <div style={{display: "flex", flexDirection: "row", alignItems: "center"}}>
-          <button onClick={()=>{
-            this.uniforms.conv3x3.u_kernel.value = [0.1,0.1,0.1,0.1,0,0.1,0.1,0.1,0.1];
-            this.uniforms.conv3x3.u_kernelWeight.value = 0.8;
-            this.appendShader(this.vShader.conv3x3,this.fShader.conv3x3,this.uniforms.conv3x3)
-          }}>
-            BLUR
-          </button>
-          <button onClick={()=>{
-            this.uniforms.conv3x3.u_kernel.value = [-1,-1,-1,-1,8,-1,-1,-1,-1];
-            this.uniforms.conv3x3.u_kernelWeight.value = 1;
-            this.appendShader(this.vShader.conv3x3,this.fShader.conv3x3,this.uniforms.conv3x3)
-          }}>
-            EDGE
-          </button>
-          <button onClick={()=>this.setState({shader: []})}>
-            RESET
-          </button>
-          <button onClick={()=>{
-            var canvas = document.getElementById("processCanvas");
-            var dataURI = canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
-            var blob = this.dataURItoBlob(dataURI);
-            console.log(dataURI);
-            this.setState({saveurl: window.URL.createObjectURL(blob)});
-          }}>
-            RENDER
-          </button>
-          <a id="saveButton" download="save.jpg" target="_blank" href={this.state.saveurl}>SAVE</a>
+          <div className="toolbar-title">
+            <span style={{paddingLeft: "20px", paddingRight: "20px", fontSize: "1rem"}}>web-edit</span>
+          </div>
+          <div className="toolbar-left">
+            <button onClick={()=>{document.getElementById("fileInput").click();}}>LOAD</button>
+            <button onClick={()=>{
+              var canvas = document.getElementById("processCanvas");
+              var dataURI = canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
+              var blob = this.dataURItoBlob(dataURI);
+              console.log(dataURI);
+              this.setState({saveurl: window.URL.createObjectURL(blob)},()=>{document.getElementById('saveButton').click();});
+            }}>
+              SAVE
+            </button>
+          </div>
+          <div className="toolbar-right">
+            <button onClick={()=>this.setState({shader: []})}>
+              UNDO
+            </button>
+            <button onClick={()=>this.setState({shader: []})}>
+              REDO
+            </button>
+            <button onClick={()=>this.setState({shader: []})}>
+              RESET
+            </button>
+            <a style={{display: 'none'}} id="saveButton" download="save.jpg" target="_blank" href={this.state.saveurl}>SAVE</a>
+          </div>
         </div>
-        <p>PROCESSED IMAGE</p>
-        <Stage id="processCanvas" width={this.state.width} height={this.state.height} options={{preserveDrawingBuffer: true, backgroundColor: 0xFFFFFF}}>
+        <div className="editbar">
+          <div className="editbar-left">
+            <div className="dropdown">
+              CONVOLUTE 3X3
+              <div className="dropdown-content">
+                <table>
+                  <tbody>
+                    <tr>
+                      <th><input type="text" className = "singleinput conv3x3" id="i_conv3x3_0" defaultValue="0" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput conv3x3" id="i_conv3x3_1" defaultValue="0" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput conv3x3" id="i_conv3x3_2" defaultValue="0" rows="1" cols="1"/></th>
+                    </tr>
+                    <tr>
+                      <th><input type="text" className = "singleinput conv3x3" id="i_conv3x3_3" defaultValue="0" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput conv3x3" id="i_conv3x3_4" defaultValue="1" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput conv3x3" id="i_conv3x3_5" defaultValue="0" rows="1" cols="1"/></th>
+                    </tr>
+                    <tr>
+                      <th><input type="text" className = "singleinput conv3x3" id="i_conv3x3_6" defaultValue="0" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput conv3x3" id="i_conv3x3_7" defaultValue="0" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput conv3x3" id="i_conv3x3_8" defaultValue="0" rows="1" cols="1"/></th>
+                    </tr>
+                  </tbody>
+                </table>
+                <button onClick={()=>{
+                  var kern = []
+                  console.log(document.getElementsByClassName("conv3x3"));
+                  for(var i=0;i<9;i++) {
+                    kern = kern.concat([parseFloat(document.getElementsByClassName("conv3x3")[i].value)]);
+                  }
+                  console.log(kern);
+                  this.uniforms.conv3x3.u_kernel.value = kern;
+                  this.uniforms.conv3x3.u_kernelWeight.value = kern.reduce((prev,curr)=>{return prev+curr});
+                  console.log(kern.reduce((prev,curr)=>{return prev+curr}));
+                  this.appendShader(this.vShader.conv3x3,this.fShader.conv3x3,this.uniforms.conv3x3)
+                }}>
+                  APPLY
+                </button>
+              </div>
+            </div>
+            <div className="dropdown">
+              CONVOLUTE 5X5
+              <div className="dropdown-content">
+                //TODO
+              </div>
+            </div>
+            <div className="dropdown">
+              COLOR FILTER
+              <div className="dropdown-content">
+                //TODO
+              </div>
+            </div>
+            <div className="dropdown">
+              PRESETS
+              <div className="dropdown-content">
+                <button onClick={()=>{
+                  this.uniforms.conv3x3.u_kernel.value = [-1,-1,-1,-1,8,-1,-1,-1,-1];
+                  this.uniforms.conv3x3.u_kernelWeight.value = 1;
+                  this.appendShader(this.vShader.conv3x3,this.fShader.conv3x3,this.uniforms.conv3x3)
+                }}>
+                  EDGE
+                </button>
+                <button onClick={()=>{
+                  this.uniforms.conv3x3.u_kernel.value = [0.1,0.1,0.1,0.1,0,0.1,0.1,0.1,0.1];
+                  this.uniforms.conv3x3.u_kernelWeight.value = 0.8;
+                  this.appendShader(this.vShader.conv3x3,this.fShader.conv3x3,this.uniforms.conv3x3)
+                }}>
+                  BLUR
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p style={{paddingTop: "64px", color: "white"}}>PROCESSED IMAGE</p>
+        <Stage id="processCanvas" style = {{width: "80vw"}} width={this.state.width} height={this.state.height} options={{preserveDrawingBuffer: true, backgroundColor: 0xFFFFFF}}>
           <Sprite texture={this.state.texture} filters={this.state.shader}/>
         </Stage>
-        <p>ORIGINAL IMAGE</p>
-        <img id="img" alt="" src={this.state.imageDataURL}>
+        <img style={{display: "none"}} id="img" alt="" src={this.state.imageDataURL}>
         </img>
       </div>
     );

@@ -1,5 +1,8 @@
 .App {
   text-align: center;
+  background-color: black;
+  min-height: 100vh;
+  overflow: auto;
 }
 
 .App-logo {
@@ -21,6 +24,180 @@
 
 .App-link {
   color: #61dafb;
+}
+
+button { 	
+	display: inline-block;
+	color: white;
+	background-color: #444444;
+	border: 0;
+	padding: 6px 12px;
+	margin: 3px;
+	font-size: 0.6rem;
+	overflow: auto;
+}
+
+button:hover {
+	background-color: #4466FF;
+}
+
+button:active {
+	background-color: #2244DD;
+}
+
+.dropdown {
+	font-family: Arial;
+	position: relative;
+	display: inline-block;
+	color: white;
+	background-color: #444444;
+	border: 0;
+	padding: 6px 12px;
+	margin: 3px;
+	font-size: 0.6rem;
+}
+
+.dropdown:hover {
+	background-color: #4466FF;
+}
+
+.dropdown:hover .dropdown-content {
+	display: flex;
+}
+
+.dropdown:active .dropdown-content {
+	display: block;
+}
+
+.dropdown-content button {
+	margin: 0px;
+}
+
+.dropdown-button:hover {
+	background-color: #4466FF;
+}
+
+.dropdown-content {
+	display: none;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: center;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	background-color: #555555;
+	width: 100%;
+	z-index: 1;
+}
+
+.dropdown-content table {
+	position: relative;
+	margin: 4px 0;
+}
+
+.fileInput {
+	align-items: flex-start;
+	text-align: center;
+	box-sizing: border-box;
+	font-family: Arial;
+	border: 1px solid #ccc;
+	background-color: #999999;
+	display: inline-block;
+	padding: 6px 12px;
+	margin: 3px;
+	cursor: pointer;
+	font-size: 0.8rem;
+}
+
+.singleinput {
+	min-width: 0;
+	border: 0;
+	text-align: center;
+	width: 100%;
+	background-color: #666666;
+	color: white;
+}
+
+.singleinput:hover {
+	background-color: #999999;
+}
+
+.toolbar {
+	height: 36px;
+	width: 100%;
+	min-width: 100vw;
+	position: fixed;
+	top: 0;
+	background-color: #888888;
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
+}
+
+.editbar {
+	height: 36px;
+	width: 100%;
+	min-width: 100vw;
+	position: fixed;
+	top: 36px;
+	background-color: #CCCCCC;
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
+}
+	
+.editbar-left {
+	display: inline-flex;
+	flex-direction: row;
+	align-items: center;
+	background-color: #CCCCCC;
+	float: left;
+	color: white;
+	padding: 4px;
+}
+
+.toolbar-title {
+	font-size: 0.8rem;
+	display: inline-flex;
+	flex-direction: row;
+	align-items: center;
+	background-color: #444444;
+	min-height: 100%; 
+	height: 100%; 
+	float: left;
+	color: white;
+}
+
+.toolbar-left {
+	display: inline-flex;
+	flex-direction: row;
+	align-items: center;
+	background-color: #666666;
+	float: left;
+	color: white;
+	padding: 4px;
+}
+
+.toolbar-right {
+	display: inline-flex;
+	flex-direction: row;
+	align-items: center;
+	background-color: #888888;
+	float: left;
+	color: white;
+	padding: 4px;
+}
+
+tr {
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+}
+
+th {
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
 }
 
 @keyframes App-logo-spin {
