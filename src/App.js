@@ -287,8 +287,8 @@ void main() {								        			\
                   EDGE
                 </button>
                 <button onClick={()=>{
-                  this.uniforms.conv3x3.u_kernel.value = [0.1,0.1,0.1,0.1,0,0.1,0.1,0.1,0.1];
-                  this.uniforms.conv3x3.u_kernelWeight.value = 0.8;
+                  this.uniforms.conv3x3.u_kernel.value = [0.1,0.1,0.1,0.1,0.2,0.1,0.1,0.1,0.1];
+                  this.uniforms.conv3x3.u_kernelWeight.value = 1;
                   this.appendShader(this.vShader.conv3x3,this.fShader.conv3x3,this.uniforms.conv3x3)
                 }}>
                   BLUR
@@ -302,82 +302,24 @@ void main() {								        			\
                 }}>
                   NEGATIVE
                 </button>
-                <button onClick={()=>{
-                  var kern = [1.04,0,0,0,1.04,0,0,0,1.04];
-                  var kern2 = [-0.02,-0.02,-0.02];
-                  this.uniforms.matrix.u_matrix.value = kern;
-                  this.uniforms.matrix.u_mplus.value = kern2;
-                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
-                }}>
-                  CONTRAST+
-                </button>
-                <button onClick={()=>{
-                  var kern = [1.2,0,0,0,1.2,0,0,0,1.2];
-                  var kern2 = [-0.1,-0.1,-0.1];
-                  this.uniforms.matrix.u_matrix.value = kern;
-                  this.uniforms.matrix.u_mplus.value = kern2;
-                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
-                }}>
-                  CONTRAST++
-                </button>
-                <button onClick={()=>{
-                  var kern = [0.96,0,0,0,0.96,0,0,0,0.96];
-                  var kern2 = [0.02,0.02,0.02];
-                  this.uniforms.matrix.u_matrix.value = kern;
-                  this.uniforms.matrix.u_mplus.value = kern2;
-                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
-                }}>
-                  CONTRAST-
-                </button>
-                <button onClick={()=>{
-                  var kern = [0.8,0,0,0,0.8,0,0,0,0.8];
-                  var kern2 = [0.1,0.1,0.1];
-                  this.uniforms.matrix.u_matrix.value = kern;
-                  this.uniforms.matrix.u_mplus.value = kern2;
-                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
-                }}>
-                  CONTRAST--
-                </button>
-                <button onClick={()=>{
-                  var kern = [1.04,0,0,0,1.04,0,0,0,1.04];
-                  var kern2 = [0,0,0];
-                  this.uniforms.matrix.u_matrix.value = kern;
-                  this.uniforms.matrix.u_mplus.value = kern2;
-                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
-                }}>
-                  BRIGHT+
-                </button>
-                <button onClick={()=>{
-                  var kern = [0.96,0,0,0,0.96,0,0,0,0.96];
-                  var kern2 = [0,0,0];
-                  this.uniforms.matrix.u_matrix.value = kern;
-                  this.uniforms.matrix.u_mplus.value = kern2;
-                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
-                }}>
-                  BRIGHT-
-                </button>
-                <button onClick={()=>{
-                  var kern = [0.96,0.02,0.02,0.02,0.96,0.02,0.02,0.02,0.96];
-                  var kern2 = [0,0,0];
-                  this.uniforms.matrix.u_matrix.value = kern;
-                  this.uniforms.matrix.u_mplus.value = kern2;
-                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
-                }}>
-                  SATURATION-
-                </button>
-                <button onClick={()=>{
-                  var kern = [1.04,-0.02,-0.02,-0.02,1.04,-0.02,-0.02,-0.02,1.04];
-                  var kern2 = [0,0,0];
-                  this.uniforms.matrix.u_matrix.value = kern;
-                  this.uniforms.matrix.u_mplus.value = kern2;
-                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
-                }}>
-                  SATURATION+
-                </button>
+                <div className="dropdown-div">
+                  <button className="short" onClick={()=>{
+                    var val = parseFloat(document.getElementById("i_con").value);
+                    var kern = [1+(val*0.01),0,0,0,1+(val*0.01),0,0,0,1+(val*0.01)];
+                    var kern2 = [-val*0.005,-val*0.005,-val*0.005];
+                    this.uniforms.matrix.u_matrix.value = kern;
+                    this.uniforms.matrix.u_mplus.value = kern2;
+                    this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                  }}>
+                    CONTRAST
+                  </button>
+                  <input style={{width: "20%", height: "100%"}} className = "singleinput" id="i_con" defaultValue="10" type="text" />
+                  <div className="dropdown-span">%</div>
+                </div>
                 <div className="dropdown-div">
                   <button className="short" onClick={()=>{
                     var val = parseFloat(document.getElementById("i_sat").value);
-                    var kern = [1+(val*0.01),0,0,0,1+(val*0.01),0,0,0,1+(val*0.01)];
+                    var kern = [1+(val*0.0067),-(val*0.0033),-(val*0.0033),-(val*0.0033),1+(val*0.0067),-(val*0.0033),-(val*0.0033),-(val*0.0033),1+(val*0.0067)];
                     var kern2 = [0,0,0];
                     this.uniforms.matrix.u_matrix.value = kern;
                     this.uniforms.matrix.u_mplus.value = kern2;
@@ -388,18 +330,46 @@ void main() {								        			\
                   <input style={{width: "20%", height: "100%"}} className = "singleinput" id="i_sat" defaultValue="10" type="text" />
                   <div className="dropdown-span">%</div>
                 </div>
-                <div className="dropdown-div">
+				<div className="dropdown-div">
                   <button className="short" onClick={()=>{
-                    var val = parseFloat(document.getElementById("i_sat").value);
-                    var kern = [1+(val*0.01),-(val*0.005),-(val*0.005),-(val*0.005),1+(val*0.01),-(val*0.005),-(val*0.005),-(val*0.005),1+(val*0.01)];
+                    var val = parseFloat(document.getElementById("i_bri").value);
+                    var kern = [1+(val*0.01),0,0,0,1+(val*0.01),0,0,0,1+(val*0.01)];
                     var kern2 = [0,0,0];
                     this.uniforms.matrix.u_matrix.value = kern;
                     this.uniforms.matrix.u_mplus.value = kern2;
                     this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
                   }}>
-                    SATURATION2
+                    BRIGHTNESS
                   </button>
-                  <input style={{width: "20%", height: "100%"}} className = "singleinput" id="i_sat" defaultValue="10" type="text" />
+                  <input style={{width: "20%", height: "100%"}} className = "singleinput" id="i_bri" defaultValue="10" type="text" />
+                  <div className="dropdown-span">%</div>
+                </div>
+				<div className="dropdown-div">
+                  <button className="short" onClick={()=>{
+                    var val = parseFloat(document.getElementById("i_warm").value);
+                    var kern = [1+(val*0.005),0,-(val*0.005),0,1,0,val*0.005,0,1-(val*0.005)];
+                    var kern2 = [0,0,0];
+                    this.uniforms.matrix.u_matrix.value = kern;
+                    this.uniforms.matrix.u_mplus.value = kern2;
+                    this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                  }}>
+                    WARMTH
+                  </button>
+                  <input style={{width: "20%", height: "100%"}} className = "singleinput" id="i_warm" defaultValue="10" type="text" />
+                  <div className="dropdown-span">%</div>
+                </div>
+				<div className="dropdown-div">
+                  <button className="short" onClick={()=>{
+                    var val = parseFloat(document.getElementById("i_tint").value);
+                    var kern = [1+0.0033*val,-0.0033*val,0,0.0033*val,1-0.0067*val,0.0033*val,-0.0033*val,0,1+0.0033*val];
+                    var kern2 = [0,0,0];
+                    this.uniforms.matrix.u_matrix.value = kern;
+                    this.uniforms.matrix.u_mplus.value = kern2;
+                    this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                  }}>
+                    TINT
+                  </button>
+                  <input style={{width: "20%", height: "100%"}} className = "singleinput" id="i_tint" defaultValue="10" type="text" />
                   <div className="dropdown-span">%</div>
                 </div>
               </div>
