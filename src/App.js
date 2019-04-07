@@ -1,17 +1,11 @@
 import React, { Component } from 'react';
 import FileInput from 'react-simple-file-input';
-import logo from './logo.svg';
 import * as PIXI from 'pixi.js';
 import './App.css';
-import ReactPIXI from "react-pixi-fiber/react-pixi-alias";
 import { Sprite, Stage } from "react-pixi-fiber";
 class App extends Component {
   constructor(props) {
     super(props);
-// PIXI SETUP
-//	this.pixi_cnt = undefined;
-//	this.app = new PIXI.Application({width: {this.state.width}, height: {this.state.height}, transparent: false});
-// STATES
     this.state = {
       width: 0,
       height: 0,
@@ -264,7 +258,7 @@ void main() {								        			\
                   for(var i=0;i<9;i++) {
                     kern = kern.concat([parseFloat(document.getElementsByClassName("cmatrix")[i].value)]);
                   }
-                  for(var i=0;i<3;i++) {
+                  for(i=0;i<3;i++) {
                     kern2 = kern2.concat([parseFloat(document.getElementsByClassName("cmplus")[i].value)]);
                   }
                   console.log(kern);
