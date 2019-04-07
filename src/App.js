@@ -9,7 +9,7 @@ class App extends Component {
   constructor(props) {
     super(props);
 // PIXI SETUP
-//	this.pixi_cnt = null;
+//	this.pixi_cnt = undefined;
 //	this.app = new PIXI.Application({width: {this.state.width}, height: {this.state.height}, transparent: false});
 // STATES
     this.state = {
@@ -18,25 +18,41 @@ class App extends Component {
       imageDataURL: "",
       file: "",
       saveurl: "",
-      texture: PIXI.Texture.EMPTY
+      texture: PIXI.Texture.EMPTY,
+      shader: []
     };
+    this.processStack = [];
 // UNIFORMS AND SHADERS
 	this.uniforms = {
 		conv3x3 : {
-		u_textureSize: {
-			type: "2f",
-			value: [0,0]
-		},
-		u_kernel: {
-			type: "1fv",
-			value: [0.1,0.1,0.1,0.1,0,0.1,0.1,0.1,0.1]
-		},
-		u_kernelWeight: {
-			type: "1f",
-			value: 0.8
-		}
-		}
-	}
+      u_textureSize: {
+        type: "2f",
+        value: [0,0]
+      },
+      u_kernel: {
+        type: "1fv",
+        value: [0.1,0.1,0.1,0.1,0,0.1,0.1,0.1,0.1]
+      },
+      u_kernelWeight: {
+        type: "1f",
+        value: 0.8
+      }
+    },
+    matrix : {
+      u_textureSize: {
+        type: "2f",
+        value: [0,0]
+      },
+      u_matrix: {
+        type: "1fv",
+        value: [0.1,0.1,0.1,0.1,0,0.1,0.1,0.1,0.1]
+      },
+      u_mplus: {
+        type: "1fv",
+        value: [0,0,0]
+      }
+    }
+  }
 	this.vShader = {
 		conv3x3: "precision mediump float;\
 attribute vec2 aVertexPosition;							\
@@ -54,16 +70,16 @@ void main() {											\
 }"
 	}
 	this.fShader = {
-		conv3x3: "									\
-precision mediump float;								\
+		conv3x3: "		          							\
+precision mediump float;		  						\
 uniform sampler2D texture;								\
 uniform vec2 u_textureSize;								\
 uniform float u_kernel[9];								\
 uniform float u_kernelWeight;							\
 varying vec2 textureCoord;								\
-void main() {											\
+void main() {									        		\
 	vec2 onePixel = vec2(1.0, 1.0) / u_textureSize;		\
-	vec4 colorSum =										\
+	vec4 colorSum =										                \
 		texture2D(texture, textureCoord + onePixel * vec2(-1,-1))*u_kernel[0] +	\
 		texture2D(texture, textureCoord + onePixel * vec2( 0,-1))*u_kernel[1] +	\
 		texture2D(texture, textureCoord + onePixel * vec2( 1,-1))*u_kernel[2] +	\
@@ -74,7 +90,23 @@ void main() {											\
 		texture2D(texture, textureCoord + onePixel * vec2( 0, 1))*u_kernel[7] +	\
 		texture2D(texture, textureCoord + onePixel * vec2( 1, 1))*u_kernel[8] ;	\
 	gl_FragColor = vec4((colorSum/u_kernelWeight).rgb, 1.0);					\
-}"
+}",
+    matrix: "\
+precision mediump float;						  		\
+uniform sampler2D texture;								\
+uniform vec2 u_textureSize;								\
+uniform float u_matrix[9];								\
+uniform float u_mplus[3];                 \
+uniform float u_kernelWeight;							\
+varying vec2 textureCoord;								\
+void main() {								        			\
+	vec2 onePixel = vec2(1.0, 1.0) / u_textureSize;		\
+	vec4 color = texture2D(texture, textureCoord);    \
+  gl_FragColor = vec4(                              \
+    color.r*u_matrix[0]+color.g*u_matrix[3]+color.b*u_matrix[6]+u_mplus[0], \
+    color.r*u_matrix[1]+color.g*u_matrix[4]+color.b*u_matrix[7]+u_mplus[1], \
+    color.r*u_matrix[2]+color.g*u_matrix[5]+color.b*u_matrix[8]+u_mplus[2], 1.0);       \
+}",
 	}
 // METHODS
   this.updateImage = this.updateImage.bind(this); //update image
@@ -83,23 +115,8 @@ void main() {											\
 // INITIAL SHADER
     this.state.shader = [];
   }
-//  updatePixiCnt = (element)=>{
-    // THE ELEMENT IS THE DOM OBJECT WE USE AS CONTAINER FOR PIXI CANVAS
-//    this.pixi_cnt = element;
-    // ADDING APPLICATION TO DOM ELEMENT
-//    if(this.pixi_cnt && this.pixi_cnt.children.length<=0) {
-//      this.pixi_cnt.appendChild(this.state.app.view);
-//      this.setup();
-//    }
-//  };
-//  setup = ()=>{
-//    PIXI.loader.add("avatar",myImage).load(this.initialize);
-//  };
-//  initialize = ()=>{
-//    this.avatar = new PIXI.Sprite(PIXI.loader.resources["avatar"].texture);
-//    this.state.app.stage.addChild(this.avatar);
-//  };
   render() {
+    console.log(this.state.shader);
     return (
       <div className="App">
         <div className = "toolbar">
@@ -125,10 +142,21 @@ void main() {											\
             </button>
           </div>
           <div className="toolbar-right">
-            <button onClick={()=>this.setState({shader: []})}>
+            <button onClick={()=>{
+              var shader = this.state.shader;
+              if(shader !== undefined && shader.length > 0) {
+                this.processStack.push(shader);
+                this.setState({shader: shader.slice(0,-1)});
+              }
+            }}>
               UNDO
             </button>
-            <button onClick={()=>this.setState({shader: []})}>
+            <button onClick={()=>{
+              if(this.processStack.length > 0) {
+                this.setState({shader: this.processStack[this.processStack.length -1]});
+                this.processStack = this.processStack.slice(0,-1);
+              }
+            }}>
               REDO
             </button>
             <button onClick={()=>this.setState({shader: []})}>
@@ -184,13 +212,72 @@ void main() {											\
               </div>
             </div>
             <div className="dropdown">
-              COLOR FILTER
+              COLOR MATRIX
               <div className="dropdown-content">
-                //TODO
+                <table>
+                  <tbody>
+                    <tr>
+                      <th className="red">R</th>
+                      <th className="green">G</th>
+                      <th className="blue">B</th>
+                    </tr>
+                    <tr>
+                      <th/><th>×</th><th/>
+                    </tr>
+                    <tr>
+                      <th><input type="text" className = "singleinput cmatrix" id="i_conv3x3_0" defaultValue="1" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput cmatrix" id="i_conv3x3_1" defaultValue="0" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput cmatrix" id="i_conv3x3_2" defaultValue="0" rows="1" cols="1"/></th>
+                    </tr>
+                    <tr>
+                      <th><input type="text" className = "singleinput cmatrix" id="i_conv3x3_3" defaultValue="0" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput cmatrix" id="i_conv3x3_4" defaultValue="1" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput cmatrix" id="i_conv3x3_5" defaultValue="0" rows="1" cols="1"/></th>
+                    </tr>
+                    <tr>
+                      <th><input type="text" className = "singleinput cmatrix" id="i_conv3x3_6" defaultValue="0" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput cmatrix" id="i_conv3x3_7" defaultValue="0" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput cmatrix" id="i_conv3x3_8" defaultValue="1" rows="1" cols="1"/></th>
+                    </tr>
+                    <tr>
+                      <th/><th>+</th><th/>
+                    </tr>
+                    <tr>
+                      <th><input type="text" className = "singleinput cmplus" id="i_conv3x3_6" defaultValue="0" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput cmplus" id="i_conv3x3_7" defaultValue="0" rows="1" cols="1"/></th>
+                      <th><input type="text" className = "singleinput cmplus" id="i_conv3x3_8" defaultValue="0" rows="1" cols="1"/></th>
+                    </tr>
+                    <tr>
+                      <th/><th>=</th><th/>
+                    </tr>
+                    <tr>
+                      <th className="red">R&rsquo;</th>
+                      <th className="green">G&rsquo;</th>
+                      <th className="blue">B&rsquo;</th>
+                    </tr>
+                  </tbody>
+                </table>
+                <button onClick={()=>{
+                  var kern = []
+                  var kern2 = []
+                  console.log(document.getElementsByClassName("cmatrix"));
+                  for(var i=0;i<9;i++) {
+                    kern = kern.concat([parseFloat(document.getElementsByClassName("cmatrix")[i].value)]);
+                  }
+                  for(var i=0;i<3;i++) {
+                    kern2 = kern2.concat([parseFloat(document.getElementsByClassName("cmplus")[i].value)]);
+                  }
+                  console.log(kern);
+                  this.uniforms.matrix.u_matrix.value = kern;
+                  this.uniforms.matrix.u_mplus.value = kern2;
+                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                }}>
+                  APPLY
+                </button>
               </div>
             </div>
-            <div className="dropdown">
-              PRESETS
+            <div style={{width: "160px"}} className="dropdown">
+              FILTER PRESET
               <div className="dropdown-content">
                 <button onClick={()=>{
                   this.uniforms.conv3x3.u_kernel.value = [-1,-1,-1,-1,8,-1,-1,-1,-1];
@@ -206,12 +293,121 @@ void main() {											\
                 }}>
                   BLUR
                 </button>
+                <button onClick={()=>{
+                  var kern = [-1,0,0,0,-1,0,0,0,-1];
+                  var kern2 = [1,1,1];
+                  this.uniforms.matrix.u_matrix.value = kern;
+                  this.uniforms.matrix.u_mplus.value = kern2;
+                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                }}>
+                  NEGATIVE
+                </button>
+                <button onClick={()=>{
+                  var kern = [1.04,0,0,0,1.04,0,0,0,1.04];
+                  var kern2 = [-0.02,-0.02,-0.02];
+                  this.uniforms.matrix.u_matrix.value = kern;
+                  this.uniforms.matrix.u_mplus.value = kern2;
+                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                }}>
+                  CONTRAST+
+                </button>
+                <button onClick={()=>{
+                  var kern = [1.2,0,0,0,1.2,0,0,0,1.2];
+                  var kern2 = [-0.1,-0.1,-0.1];
+                  this.uniforms.matrix.u_matrix.value = kern;
+                  this.uniforms.matrix.u_mplus.value = kern2;
+                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                }}>
+                  CONTRAST++
+                </button>
+                <button onClick={()=>{
+                  var kern = [0.96,0,0,0,0.96,0,0,0,0.96];
+                  var kern2 = [0.02,0.02,0.02];
+                  this.uniforms.matrix.u_matrix.value = kern;
+                  this.uniforms.matrix.u_mplus.value = kern2;
+                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                }}>
+                  CONTRAST-
+                </button>
+                <button onClick={()=>{
+                  var kern = [0.8,0,0,0,0.8,0,0,0,0.8];
+                  var kern2 = [0.1,0.1,0.1];
+                  this.uniforms.matrix.u_matrix.value = kern;
+                  this.uniforms.matrix.u_mplus.value = kern2;
+                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                }}>
+                  CONTRAST--
+                </button>
+                <button onClick={()=>{
+                  var kern = [1.04,0,0,0,1.04,0,0,0,1.04];
+                  var kern2 = [0,0,0];
+                  this.uniforms.matrix.u_matrix.value = kern;
+                  this.uniforms.matrix.u_mplus.value = kern2;
+                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                }}>
+                  BRIGHT+
+                </button>
+                <button onClick={()=>{
+                  var kern = [0.96,0,0,0,0.96,0,0,0,0.96];
+                  var kern2 = [0,0,0];
+                  this.uniforms.matrix.u_matrix.value = kern;
+                  this.uniforms.matrix.u_mplus.value = kern2;
+                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                }}>
+                  BRIGHT-
+                </button>
+                <button onClick={()=>{
+                  var kern = [0.96,0.02,0.02,0.02,0.96,0.02,0.02,0.02,0.96];
+                  var kern2 = [0,0,0];
+                  this.uniforms.matrix.u_matrix.value = kern;
+                  this.uniforms.matrix.u_mplus.value = kern2;
+                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                }}>
+                  SATURATION-
+                </button>
+                <button onClick={()=>{
+                  var kern = [1.04,-0.02,-0.02,-0.02,1.04,-0.02,-0.02,-0.02,1.04];
+                  var kern2 = [0,0,0];
+                  this.uniforms.matrix.u_matrix.value = kern;
+                  this.uniforms.matrix.u_mplus.value = kern2;
+                  this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                }}>
+                  SATURATION+
+                </button>
+                <div className="dropdown-div">
+                  <button className="short" onClick={()=>{
+                    var val = parseFloat(document.getElementById("i_sat").value);
+                    var kern = [1+(val*0.01),0,0,0,1+(val*0.01),0,0,0,1+(val*0.01)];
+                    var kern2 = [0,0,0];
+                    this.uniforms.matrix.u_matrix.value = kern;
+                    this.uniforms.matrix.u_mplus.value = kern2;
+                    this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                  }}>
+                    SATURATION
+                  </button>
+                  <input style={{width: "20%", height: "100%"}} className = "singleinput" id="i_sat" defaultValue="10" type="text" />
+                  <div className="dropdown-span">%</div>
+                </div>
+                <div className="dropdown-div">
+                  <button className="short" onClick={()=>{
+                    var val = parseFloat(document.getElementById("i_sat").value);
+                    var kern = [1+(val*0.01),-(val*0.005),-(val*0.005),-(val*0.005),1+(val*0.01),-(val*0.005),-(val*0.005),-(val*0.005),1+(val*0.01)];
+                    var kern2 = [0,0,0];
+                    this.uniforms.matrix.u_matrix.value = kern;
+                    this.uniforms.matrix.u_mplus.value = kern2;
+                    this.appendShader(this.vShader.conv3x3,this.fShader.matrix,this.uniforms.matrix);
+                  }}>
+                    SATURATION2
+                  </button>
+                  <input style={{width: "20%", height: "100%"}} className = "singleinput" id="i_sat" defaultValue="10" type="text" />
+                  <div className="dropdown-span">%</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
         <p style={{paddingTop: "64px", color: "white"}}>PROCESSED IMAGE</p>
-        <Stage id="processCanvas" style = {{width: "80vw"}} width={this.state.width} height={this.state.height} options={{preserveDrawingBuffer: true, backgroundColor: 0xFFFFFF}}>
+        <Stage id="processCanvas" style = {{maxWidth: "80vw", maxHeight: "80vh"}} width={this.state.width} height={this.state.height} options={{preserveDrawingBuffer: true, backgroundColor: 0xFFFFFF}}>
           <Sprite texture={this.state.texture} filters={this.state.shader}/>
         </Stage>
         <img style={{display: "none"}} id="img" alt="" src={this.state.imageDataURL}>
@@ -225,15 +421,19 @@ void main() {											\
     this.setState({
       shader: [newShader]
     });
+    this.processStack = [this.state.shader];
   }
   //appendShader: append a shader to filter list
   appendShader(vShaderCode,fShaderCode,uniforms) {
     var newShader = new PIXI.AbstractFilter(vShaderCode,fShaderCode,uniforms);
-    var shaders = this.state.shader;
-    this.setState({
-      shader: shaders.concat([newShader])
-    });
+    var shader = this.state.shader;
+    if(shader !== undefined) {
+      this.setState({
+        shader: shader.concat([newShader])
+      });
+    }
     console.log(this.state.shader);
+    this.processStack = [this.state.shader];
   }
   //updateImage: update state from FileInput stream
   updateImage(event,file) {

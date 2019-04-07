@@ -66,7 +66,7 @@ button:active {
 }
 
 .dropdown:active .dropdown-content {
-	display: block;
+	display: flex;
 }
 
 .dropdown-content button {
@@ -90,6 +90,24 @@ button:active {
 	z-index: 1;
 }
 
+.dropdown-span {
+	width: 10%;
+	font-family: Arial;
+	position: relative;
+	display: inline-block;
+	color: white;
+	background-color: #444444;
+	border: 0;
+	padding: 6px 0px;
+	margin: 0px;
+	font-size: 0.6rem;
+}
+
+.short {
+	width: 70%;
+	margin: 0;
+}
+
 .dropdown-content table {
 	position: relative;
 	margin: 4px 0;
@@ -109,9 +127,14 @@ button:active {
 	font-size: 0.8rem;
 }
 
+.dropdown-div {
+	display: flex;
+	align-items: stretch;
+}
 .singleinput {
 	min-width: 0;
 	border: 0;
+	padding: 0;
 	text-align: center;
 	width: 100%;
 	background-color: #666666;
@@ -198,6 +221,18 @@ th {
 	margin: 0px;
 	padding: 0px;
 	border: 0px;
+}
+
+.red {
+	color: #FF0000;
+}
+
+.green {
+	color: #00FF00;
+}
+
+.blue {
+	color: #0000FF;
 }
 
 @keyframes App-logo-spin {
