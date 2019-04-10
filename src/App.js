@@ -6,6 +6,9 @@ import { Sprite, Stage } from "react-pixi-fiber";
 class App extends Component {
   constructor(props) {
     super(props);
+	var ticker = PIXI.ticker.shared;
+	ticker.autoStart = false;
+	ticker.stop();
     this.state = {
       width: 0,
       height: 0,
@@ -103,11 +106,17 @@ void main() {								        			\
 }",
 	}
 // METHODS
-  this.updateImage = this.updateImage.bind(this); //update image
+    this.updateImage = this.updateImage.bind(this); //update image
 	this.appendShader = this.appendShader.bind(this); //add a new shader to processing stack
 	this.setShader = this.setShader.bind(this);
 // INITIAL SHADER
     this.state.shader = [];
+// IMAGE
+	this.fullImage = new Image();
+	this.sizeImage = new Image();
+// STAGE
+	this.stage = null;
+	this.sprite = null;
   }
   render() {
     console.log(this.state.shader);
@@ -140,20 +149,20 @@ void main() {								        			\
               var shader = this.state.shader;
               if(shader !== undefined && shader.length > 0) {
                 this.processStack.push(shader);
-                this.setState({shader: shader.slice(0,-1)});
+                this.setState({shader: shader.slice(0,-1)}, ()=>{this.stage._app.render()});
               }
             }}>
               UNDO
             </button>
             <button onClick={()=>{
               if(this.processStack.length > 0) {
-                this.setState({shader: this.processStack[this.processStack.length -1]});
+                this.setState({shader: this.processStack[this.processStack.length -1]}, ()=>{this.stage._app.render()});
                 this.processStack = this.processStack.slice(0,-1);
               }
             }}>
               REDO
             </button>
-            <button onClick={()=>this.setState({shader: []})}>
+            <button onClick={()=>this.setState({shader: []}, ()=>{this.stage._app.render()})}>
               RESET
             </button>
             <a style={{display: 'none'}} id="saveButton" download="save.jpg" target="_blank" href={this.state.saveurl}>SAVE</a>
@@ -371,8 +380,8 @@ void main() {								        			\
           </div>
         </div>
         <p style={{paddingTop: "64px", color: "white"}}>PROCESSED IMAGE</p>
-        <Stage id="processCanvas" style = {{maxWidth: "80vw", maxHeight: "80vh"}} width={this.state.width} height={this.state.height} options={{preserveDrawingBuffer: true, backgroundColor: 0xFFFFFF}}>
-          <Sprite texture={this.state.texture} filters={this.state.shader}/>
+        <Stage ref={(stage)=>{this.stage = stage}} id="processCanvas" style = {{maxWidth: "80vw", maxHeight: "80vh"}} width={this.state.width} height={this.state.height} options={{autoStart: false, sharedTicker: true, preserveDrawingBuffer: true, backgroundColor: 0xFFFFFF}}>
+          <Sprite ref={(sprite)=>{this.sprite = sprite}} texture={this.state.texture} filters={this.state.shader}/>
         </Stage>
         <img style={{display: "none"}} id="img" alt="" src={this.state.imageDataURL}>
         </img>
@@ -384,7 +393,7 @@ void main() {								        			\
     var newShader = new PIXI.AbstractFilter(vShaderCode,fShaderCode,uniforms);
     this.setState({
       shader: [newShader]
-    });
+    }, ()=>{this.stage._app.render()});
     this.processStack = [this.state.shader];
   }
   //appendShader: append a shader to filter list
@@ -394,7 +403,7 @@ void main() {								        			\
     if(shader !== undefined) {
       this.setState({
         shader: shader.concat([newShader])
-      });
+      }, ()=>{this.stage._app.render()});
     }
     console.log(this.state.shader);
     this.processStack = [this.state.shader];
@@ -403,14 +412,15 @@ void main() {								        			\
   updateImage(event,file) {
     var res = event.target.result;
     this.setState({imageDataURL:res, file:file});
-	  var img = new Image();
-    img.onload = ()=>{
-      console.log(img.width);
-      this.setState({width: img.width, height: img.height, texture: PIXI.Texture.fromImage(res)});
-      this.uniforms.conv3x3.u_textureSize.value = [img.width,img.height];
+	this.fullImage = new Image();
+    this.fullImage.onload = ()=>{
+      this.sprite.texture = PIXI.Texture.fromImage(res);
+	  this.sprite.texture.on('update',()=>{this.stage._app.render()});
+      this.setState({width: this.fullImage.width, height: this.fullImage.height}, ()=>{this.stage._app.render()});
+      this.uniforms.conv3x3.u_textureSize.value = [this.fullImage.width,this.fullImage.height];
+	  this.uniforms.matrix.u_textureSize.value = [this.fullImage.width,this.fullImage.height];
     }
-	  img.src = res;
-    
+	this.fullImage.src = res;
   }
   dataURItoBlob(dataURI) {
     // convert base64 to raw binary data held in a string
